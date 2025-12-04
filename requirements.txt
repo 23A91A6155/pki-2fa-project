@@ -1,4 +1,8 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pyotp
 cryptography
+pyjwt
+pydantic
+qrcode
+Pillow

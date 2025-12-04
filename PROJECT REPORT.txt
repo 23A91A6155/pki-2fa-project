@@ -1,0 +1,153 @@
+PROJECT REPORT
+Title
+
+🔐 Secure PKI & TOTP-Based Two-Factor Authentication Microservice Using Docker
+
+Abstract
+
+This project implements a secure containerized authentication microservice that combines two major security mechanisms: Public Key Infrastructure (PKI) and Time-based One-Time Password (TOTP) 2-Factor Authentication (2FA).
+
+The system provides secure seed decryption using RSA-4096 keys, generates accurate TOTP codes based on industry standards, and verifies user authentication with time-window tolerance. The application is deployed in a Docker environment with persistent storage and automated cron-based TOTP logging.
+
+This work demonstrates strong cryptographic principles, secure API design, and enterprise-grade deployment methods.
+
+Problem Definition
+
+Traditional single-factor authentication (password only) is vulnerable to cyber-attacks including credential leaks and brute-force attempts. This project aims to build a production-ready secure authentication module using:
+✔ Strong encryption to protect secret seeds
+✔ TOTP-based second-factor validation
+✔ Containerization to support real deployment and persistence
+
+Objectives
+
+Implement RSA-4096 key pair for cryptographic operations
+
+Decrypt encrypted seed securely using RSA-OAEP-SHA256
+
+Generate and verify TOTP codes using SHA-1 with 30-second period
+
+Provide secure API endpoints for 2FA workflows
+
+Develop a containerized microservice with persistent volumes
+
+Log codes automatically via cron, with UTC timestamp tracking
+
+Follow enterprise security guidelines and Docker best practices
+
+System Requirements
+Software
+Component	Requirement
+Language	Python 3.10+
+Framework	FastAPI
+Cryptography	cryptography, pyotp
+Deployment	Docker / Docker Compose
+OS	Linux-based container
+Database	File-based seed persistence
+Hardware
+
+Works on any modern system with Docker installed.
+
+Methodology / Workflow
+1️⃣ PKI Cryptography
+Operation	Standard Used
+Key Size	RSA 4096-bit
+Padding	OAEP (SHA-256, MGF1-SHA256)
+Signatures	RSA-PSS-SHA256
+Keys in PEM format	Yes
+
+Encrypted seed → student private key → decrypt → store in /data/seed.txt
+
+2️⃣ TOTP Algorithm
+Parameter	Value
+Hash Algorithm	SHA-1
+Time Step	30 seconds
+Output	6-digits
+Encoding	Convert 64-hex → Base32
+
+Verification supports ±1 time window.
+
+3️⃣ REST API Endpoints
+Endpoint	Method	Purpose	Response
+/decrypt-seed	POST	Decrypt & store seed	status / error
+/generate-2fa	GET	Generate TOTP code	code + valid_for
+/verify-2fa	POST	Validate user code	valid: true/false
+
+All responses in JSON with proper HTTP codes.
+
+4️⃣ Docker Containerization
+
+Multi-stage Docker build (secure + optimized)
+
+Exposes port 8080
+
+Persistent volumes:
+
+/data → seed storage
+
+/cron → TOTP logs
+
+5️⃣ Automated Cron Job
+
+Executes every 1 minute
+
+Generates TOTP code
+
+Logs to /cron/last_code.txt
+Format:
+
+YYYY-MM-DD HH:MM:SS - 2FA Code: XXXXXX
+
+
+Runs in UTC timezone
+
+System Architecture
+Encrypted Seed -> /decrypt-seed -> RSA Private Key -> /data/seed.txt
+              |
+             V
+/generate-2fa ------> SHA-1 TOTP engine -----> Return OTP + valid time
+              |
+             V
+/verify-2fa -----> TOTP Verification (+/- 30 sec)
+
+
+Cron independently:
+
+/data/seed.txt -> Cron -> Generate Code -> /cron/last_code.txt
+
+Security Features
+
+✓ All cryptographic operations strictly follow NIST-recommended standards
+✓ Private key never leaves container
+✓ Error handling prevents leakage of sensitive data
+✓ Volumes ensure seed is not lost on restart
+✓ Only REST API surface exposed to users
+
+Testing
+Test Case	Result
+Seed decryption	✔ Successful
+Code generation & valid timer	✔ Accurate
+±1 period tolerance	✔ Pass
+Cron logging every minute	✔ Verified
+Seed persistence after restart	✔ Pass
+Timezone = UTC	✔ Confirmed
+Screenshots (Attach if required)
+
+📌 API responses for 3 endpoints
+📌 Docker logs
+📌 Cron generated OTP logs
+
+Results
+
+The project successfully demonstrates:
+
+Secure 2FA generation and validation
+
+Fully automated cryptographic seed management
+
+Production-grade deployment with Docker + Cron
+
+Persistent secure storage across container restarts
+
+Conclusion
+
+This project proves that a cryptographically secure Two-Factor Authentication microservice can be designed efficiently using modern frameworks and containerization. The system follows enterprise-level security practices and can be integrated into any real-world authentication workflow.
